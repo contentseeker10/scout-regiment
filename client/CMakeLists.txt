@@ -11,9 +11,6 @@ if(WIN32)
     target_sources(scoutreg PRIVATE 
         src/win32_scout.cpp
     )
-    target_link_libraries(scoutreg PRIVATE 
-        ws2_32
-    )
     target_compile_options(scoutreg PRIVATE /W4 /permissive-)
 elseif(UNIX AND NOT APPLE)
     target_sources(scoutreg PRIVATE 
