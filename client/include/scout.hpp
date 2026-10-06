@@ -13,13 +13,16 @@ namespace scoutreg {
         string username;
         string cpu_arch;
         uint32_t cpu_cores{};
-        uint64_t total_ram_mb{};
-        uint64_t available_ram_mb{};
+        uint64_t total_ram{};
+        uint64_t available_ram{};
     };
 
     std::optional<SystemInfo> collect_system_info();
 
-    void get_hostname(SystemInfo&);
+    void load_hostname(SystemInfo&);
+    void load_username(SystemInfo&);
+    void load_cpu(SystemInfo&);
+    void load_ram(SystemInfo&);
 
 }
 

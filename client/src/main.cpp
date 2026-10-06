@@ -2,7 +2,7 @@
 
 #include "scout.hpp"
 
-void log_msg(const std::string_view& msg) {
+void log_msg(const auto& msg) {
     std::cout << "[Scout Regiment] " << msg << std::endl;
 }
 
@@ -20,7 +20,23 @@ int main() {
 
     auto info = info_opt.value();
 
-    log_msg("Hostname: " + info.hostname);
+    log_msg("Hostname: ");
+    log_msg(info.hostname);
+
+    log_msg("Username: ");
+    log_msg(info.username);
+
+    log_msg("CPU Architecture: ");
+    log_msg(info.cpu_arch);
+
+    log_msg("CPU Cores: ");
+    log_msg(info.cpu_cores);
+
+    log_msg("RAM Total: ");
+    log_msg(info.total_ram);
+    
+    log_msg("RAM Available: ");
+    log_msg(info.available_ram);
 
     return 0;
 }
