@@ -6,11 +6,12 @@ void log_msg(const auto& msg) {
     std::cout << "[Scout Regiment] " << msg << std::endl;
 }
 
+static const auto info_opt = scoutreg::collect_system_info();
+
 int main() {
     log_msg("System initialized");
 
     log_msg("Collecting system information");
-    auto info_opt = scoutreg::collect_system_info();
 
     if (!info_opt) {
         log_msg("Failed to collect system inforamtion");
@@ -34,7 +35,7 @@ int main() {
 
     log_msg("RAM Total: ");
     log_msg(info.total_ram);
-    
+
     log_msg("RAM Available: ");
     log_msg(info.available_ram);
 
