@@ -6,6 +6,9 @@ Academic example of scout malware. For educational purposes only.
 
 Named after a regiment of the same name in anime/manga "Attack on Titan" by Hajime Isayama.
 
-### Use
+### Build & Compile
 
-TBA
+```
+cmake -B out -S .
+cmake --build out --config Debug
+```

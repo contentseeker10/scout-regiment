@@ -48,6 +48,10 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 out/
+build/
+
+# VS Code
+.vscode/
 
 ### CMake Patch ###
 CMakeUserPresets.json
