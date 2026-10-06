@@ -2,6 +2,26 @@
 
 #include <Windows.h>
 
+namespace {
+
+    std::string wide_to_utf8(std::wstring_view wstr) {
+        if (wstr.empty()) return {};
+
+        int size_needed = WideCharToMultiByte(
+            CP_UTF8, 0, wstr.data(), static_cast<int>(wstr.size()),
+            nullptr, 0, nullptr, nullptr
+        );
+        if (size_needed <= 0) return {};
+        std::string result(size_needed, 0);
+        WideCharToMultiByte(
+            CP_UTF8, 0, wstr.data(), static_cast<int>(wstr.size()),
+            result.data(), size_needed, nullptr, nullptr
+        );
+        return result;
+    }
+
+}
+
 namespace scoutreg {
 
     std::optional<SystemInfo> collect_system_info() {
@@ -53,26 +73,6 @@ namespace scoutreg {
             info.total_ram = mem_status.ullTotalPhys / (1024 * 1024);
             info.available_ram = mem_status.ullAvailPhys / (1024 * 1024);
         }
-    }
-
-}
-
-namespace {
-
-    std::string wide_to_utf8(std::wstring_view wstr) {
-        if (wstr.empty()) return {};
-
-        int size_needed = WideCharToMultiByte(
-            CP_UTF8, 0, wstr.data(), static_cast<int>(wstr.size()),
-            nullptr, 0, nullptr, nullptr
-        );
-        if (size_needed <= 0) return {};
-        std::string result(size_needed, 0);
-        WideCharToMultiByte(
-            CP_UTF8, 0, wstr.data(), static_cast<int>(wstr.size()),
-            result.data(), size_needed, nullptr, nullptr
-        );
-        return result;
     }
 
 }
