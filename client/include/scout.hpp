@@ -15,11 +15,11 @@ namespace scoutreg {
         uint64_t available_ram{};
     };
 
-    std::optional<SystemInfo> collect_system_info();
-
     void load_hostname(SystemInfo&);
     void load_username(SystemInfo&);
     void load_cpu(SystemInfo&);
     void load_ram(SystemInfo&);
+    
+    std::optional<SystemInfo> collect_system_info();
 
 }
