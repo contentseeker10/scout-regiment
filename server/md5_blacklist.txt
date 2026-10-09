@@ -1,0 +1,4 @@
+# Blacklisted MD5 hashes of zip files - one per line, "#" for comments.
+# Files whose MD5 matches an entry here are recorded in the database
+# but are NOT stored in S3.
+046567309ae14799927fd228bbda2972

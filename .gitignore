@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/windows,c++,visualstudio,cmake,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,c++,visualstudio,cmake,linux
 
+#the most impormant one
+.env
+
 ### C++ ###
 # Prerequisites
 *.d
@@ -58,6 +61,13 @@ CMakeUserPresets.json
 
 # External projects
 *-prefix/
+
+# Go server (scout-regiment)
+server/scoutreg-server
+server/*.db
+server/*.db-journal
+server/*.db-wal
+server/*.db-shm
 
 ### Linux ###
 *~
