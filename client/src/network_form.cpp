@@ -106,7 +106,6 @@ namespace scoutreg::network {
                 return size * count;
             }
         );
-
         const CURLcode result = curl_easy_perform(curl);
 
         bool success = false;
@@ -125,6 +124,23 @@ namespace scoutreg::network {
             }
 
             success = status >= 200 && status < 300;
+
+            if (!success) {
+                fprintf(
+                    stderr,
+                    "HTTP request failed: status=%ld url=%s\n",
+                    status,
+                    url.c_str()
+                );
+            }
+        } else {
+            fprintf(
+                stderr,
+                "curl_easy_perform failed: %s (%d), url=%s\n",
+                curl_easy_strerror(result),
+                result,
+                url.c_str()
+            );
         }
 
         curl_mime_free(mime);

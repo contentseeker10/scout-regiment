@@ -28,10 +28,23 @@ if(WIN32)
     target_sources(scoutreg PRIVATE
         src/win32_scout.cpp
     )
-    target_compile_options(scoutreg PRIVATE
-        /W4
-        /permissive-
-    )
+
+    if(MSVC)
+        target_compile_options(scoutreg PRIVATE
+            /W4
+            /permissive-
+        )
+    else()
+        target_compile_options(scoutreg PRIVATE
+            -Wall
+            -Wextra
+            -Wpedantic
+        )
+        target_link_options(scoutreg PRIVATE
+            -static
+        )
+    endif()
+
 elseif(UNIX AND NOT APPLE)
     target_sources(scoutreg PRIVATE
         src/linux_scout.cpp
