@@ -106,6 +106,13 @@ namespace scoutreg::network {
                 return size * count;
             }
         );
+
+        curl_easy_setopt(
+            curl,
+            CURLOPT_SSL_OPTIONS,
+            CURLSSLOPT_NATIVE_CA
+        );
+
         const CURLcode result = curl_easy_perform(curl);
 
         bool success = false;
