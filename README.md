@@ -6,6 +6,12 @@ Academic example of scout malware. For educational purposes only.
 
 Named after a regiment of the same name in anime/manga "Attack on Titan" by Hajime Isayama.
 
+### Dependencies
+
+```
+conan install . --output-folder=out --build=missing
+```
+
 ### Build & Compile & Run
 
 ```
