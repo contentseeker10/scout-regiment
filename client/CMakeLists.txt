@@ -1,4 +1,5 @@
 find_package(CURL REQUIRED)
+find_package(miniz REQUIRED)
 
 option(SCOUTREG_NETWORK_FORM
     "Use multipart/form-data networking instead of JSON"
@@ -45,4 +46,5 @@ endif()
 target_link_libraries(scoutreg
     PRIVATE
         CURL::libcurl
+        miniz::miniz
 )
